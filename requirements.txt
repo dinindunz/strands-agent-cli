@@ -1,0 +1,7 @@
+cognee==0.5.1
+cognee-integration-langgraph==0.1.7
+strands-agents==1.24.0
+strands-agents-tools==0.2.19
+opentelemetry-exporter-otlp-proto-http==1.39.1
+opentelemetry-exporter-otlp-proto-common==1.39.1
+opentelemetry-proto==1.39.1

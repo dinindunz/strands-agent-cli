@@ -1,10 +1,43 @@
 import os
-from strands import Agent
-from strands.models.bedrock import BedrockModel
+from dotenv import load_dotenv
+from strands import Agent, tool
+from strands.models.openai import OpenAIModel
 from strands_tools import shell,  editor
 from fastapi import FastAPI
 from pydantic import BaseModel
 import uvicorn
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Monkey-patch tiktoken to handle custom embedding model names
+import tiktoken
+_original_encoding_for_model = tiktoken.encoding_for_model
+
+def patched_encoding_for_model(model_name: str):
+    """Patch tiktoken to recognize custom model names from Mantel gateway"""
+    # Map custom model names to standard OpenAI encodings
+    model_mappings = {
+        "au-text-embedding-3-large": "text-embedding-3-large",
+        "openai/au-text-embedding-3-large": "text-embedding-3-large",
+    }
+
+    # Use mapping if available, otherwise pass through
+    mapped_model = model_mappings.get(model_name, model_name)
+    return _original_encoding_for_model(mapped_model)
+
+tiktoken.encoding_for_model = patched_encoding_for_model
+
+# Configure Cognee to use project directory for database storage
+import cognee
+
+# Set database location to project directory instead of Python site-packages
+project_cognee_dir = os.path.join(os.getcwd(), ".cognee_system")
+cognee.config.system_root_directory(project_cognee_dir)
+
+print(f"Cognee database location: {project_cognee_dir}/databases")
+
+from cognee_integration_langgraph import get_sessionized_cognee_tools
 
 # Set environment variables to bypass tool approval prompts
 os.environ["STRANDS_NON_INTERACTIVE"] = "true"
@@ -12,11 +45,55 @@ os.environ["BYPASS_TOOL_CONSENT"] = "true"
 
 app = FastAPI()
 
+# Get cognee tools (will use the configured project directory)
+_cognee_add_tool, _cognee_search_tool = get_sessionized_cognee_tools()
+
+
+@tool
+async def add_to_knowledge_base(data: str) -> str:
+    """Store information in the knowledge base for later retrieval.
+
+    Args:
+        data: The information to store in the knowledge base
+
+    Returns:
+        Confirmation message about the stored information
+    """
+    try:
+        # LangChain tools require async invocation
+        result = await _cognee_add_tool.ainvoke({"data": data})
+        return f"Successfully stored information: {result}"
+    except Exception as e:
+        return f"Error storing information: {str(e)}"
+
+
+@tool
+async def search_knowledge_base(query: str) -> str:
+    """Search previously stored information from the knowledge base.
+
+    Args:
+        query: The search query to find relevant information
+
+    Returns:
+        Search results from the knowledge base
+    """
+    try:
+        # LangChain tools require async invocation
+        result = await _cognee_search_tool.ainvoke({"query_text": query})
+        return str(result)
+    except Exception as e:
+        return f"Error searching knowledge base: {str(e)}"
+
+
 agent = Agent(
-    model=BedrockModel(
-        model_id="apac.anthropic.claude-sonnet-4-20250514-v1:0",
+    model=OpenAIModel(
+        client_args={
+            "base_url": os.getenv("LLM_ENDPOINT"),
+            "api_key": os.getenv("LLM_API_KEY"),
+        },
+        model_id="global-claude-sonnet-4.5-claude-code",
     ),
-    tools=[shell, editor],
+    tools=[shell, editor, add_to_knowledge_base, search_knowledge_base],
 )
 
 

@@ -1,0 +1,69 @@
+#!/usr/bin/env python3
+"""
+Real-time Knowledge Graph Visualization Server
+
+Runs a live visualization server that shows the knowledge graph in real-time.
+Can run alongside the agent without database locks.
+"""
+
+import os
+from dotenv import load_dotenv
+import signal
+import sys
+
+# Load environment variables
+load_dotenv()
+
+# Monkey-patch tiktoken
+import tiktoken
+_original_encoding_for_model = tiktoken.encoding_for_model
+
+def patched_encoding_for_model(model_name: str):
+    model_mappings = {
+        "au-text-embedding-3-small": "text-embedding-3-small",
+        "au-text-embedding-3-large": "text-embedding-3-large",
+        "openai/au-text-embedding-3-small": "text-embedding-3-small",
+        "openai/au-text-embedding-3-large": "text-embedding-3-large",
+    }
+    mapped_model = model_mappings.get(model_name, model_name)
+    return _original_encoding_for_model(mapped_model)
+
+tiktoken.encoding_for_model = patched_encoding_for_model
+
+# Configure Cognee to use project directory (same as agent.py)
+import cognee
+from cognee.api.v1.visualize.start_visualization_server import visualization_server
+
+project_cognee_dir = os.path.join(os.getcwd(), ".cognee_system")
+cognee.config.system_root_directory(project_cognee_dir)
+
+print("=" * 60)
+print("COGNEE REAL-TIME GRAPH VISUALIZATION SERVER")
+print("=" * 60)
+print(f"\nDatabase: {project_cognee_dir}/databases")
+print(f"Starting visualization server on http://localhost:8080")
+print("\nThe graph will update automatically as your agent adds new data!")
+print("\nPress Ctrl+C to stop the server")
+print("=" * 60)
+
+# Start the visualization server
+shutdown_fn = visualization_server(port=8080)
+
+# Handle graceful shutdown
+def signal_handler(sig, frame):
+    print("\n\nShutting down visualization server...")
+    if shutdown_fn:
+        shutdown_fn()
+    print("Server stopped.")
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
+
+# Keep the server running
+try:
+    signal.pause()
+except AttributeError:
+    # Windows doesn't have signal.pause(), so use an alternative
+    import time
+    while True:
+        time.sleep(1)
