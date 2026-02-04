@@ -17,11 +17,16 @@ from common_patches import apply_tiktoken_patch
 
 apply_tiktoken_patch()
 
-# Configure Cognee to use project directory
+# Configure Cognee BEFORE any operations - must set data directory first
 import cognee
 
 project_cognee_dir = os.path.join(os.getcwd(), ".cognee_system")
-cognee.config.system_root_directory(project_cognee_dir)
+os.makedirs(project_cognee_dir, exist_ok=True)
+
+# Configure cognee to use project directory
+cognee.config.data_root_directory(project_cognee_dir)
+
+print(f"Using Cognee database from: {project_cognee_dir}")
 
 import asyncio
 
