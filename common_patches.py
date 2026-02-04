@@ -10,11 +10,12 @@ _original_encoding_for_model = tiktoken.encoding_for_model
 
 def apply_tiktoken_patch():
     """
-    Patch tiktoken to recognize custom model names from Mantel gateway.
+    Patch tiktoken to recognize custom model names from custom gateways.
 
     Maps custom model names (e.g., au-text-embedding-3-large) to standard
     OpenAI model names that tiktoken recognizes.
     """
+
     def patched_encoding_for_model(model_name: str):
         model_mappings = {
             "au-text-embedding-3-large": "text-embedding-3-large",

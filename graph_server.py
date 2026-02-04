@@ -16,6 +16,7 @@ load_dotenv()
 
 # Apply common patches
 from common_patches import apply_tiktoken_patch
+
 apply_tiktoken_patch()
 
 # Configure Cognee to use project directory (same as agent.py)
@@ -25,17 +26,21 @@ from cognee.api.v1.visualize.start_visualization_server import visualization_ser
 project_cognee_dir = os.path.join(os.getcwd(), ".cognee_system")
 cognee.config.system_root_directory(project_cognee_dir)
 
+# Get server configuration from environment
+graph_port = int(os.getenv("GRAPH_PORT"))
+
 print("=" * 60)
 print("COGNEE REAL-TIME GRAPH VISUALIZATION SERVER")
 print("=" * 60)
 print(f"\nDatabase: {project_cognee_dir}/databases")
-print(f"Starting visualization server on http://localhost:8080")
+print(f"Starting visualization server on http://localhost:{graph_port}")
 print("\nThe graph will update automatically as your agent adds new data!")
 print("\nPress Ctrl+C to stop the server")
 print("=" * 60)
 
 # Start the visualization server
-shutdown_fn = visualization_server(port=8080)
+shutdown_fn = visualization_server(port=graph_port)
+
 
 # Handle graceful shutdown
 def signal_handler(sig, frame):
@@ -45,6 +50,7 @@ def signal_handler(sig, frame):
     print("Server stopped.")
     sys.exit(0)
 
+
 signal.signal(signal.SIGINT, signal_handler)
 
 # Keep the server running
@@ -53,5 +59,6 @@ try:
 except AttributeError:
     # Windows doesn't have signal.pause(), so use an alternative
     import time
+
     while True:
         time.sleep(1)

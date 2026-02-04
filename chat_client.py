@@ -2,17 +2,22 @@
 """
 Continuous Chat Interface for Agent
 
-This script provides a command-line chat interface to interact with the Agent running on localhost:8888.
+This script provides a command-line chat interface to interact with the Agent.
 """
 
+import os
 import requests
 import json
 import sys
 from typing import Dict, Any
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 
 class AgentChatClient:
-    def __init__(self, base_url: str = "http://localhost:8888"):
+    def __init__(self, base_url: str = None):
         self.base_url = base_url
         self.session = requests.Session()
         self.session.headers.update({"Content-Type": "application/json"})
@@ -125,13 +130,15 @@ def main():
     """Main entry point."""
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Continuous chat interface for Agent"
-    )
+    # Get default URL from environment variables
+    agent_port = os.getenv("AGENT_PORT")
+    default_url = f"http://localhost:{agent_port}"
+
+    parser = argparse.ArgumentParser(description="Continuous chat interface for Agent")
     parser.add_argument(
         "--url",
-        default="http://localhost:8888",
-        help="Base URL of the agent (default: http://localhost:8888)",
+        default=default_url,
+        help=f"Base URL of the agent (default: {default_url})",
     )
 
     args = parser.parse_args()

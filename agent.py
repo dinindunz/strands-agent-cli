@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 from strands import Agent, tool
 from strands.models.openai import OpenAIModel
-from strands_tools import shell,  editor
+from strands_tools import shell, editor
 from fastapi import FastAPI
 from pydantic import BaseModel
 import uvicorn
@@ -12,6 +12,7 @@ load_dotenv()
 
 # Apply common patches
 from common_patches import apply_tiktoken_patch
+
 apply_tiktoken_patch()
 
 # Configure Cognee to use project directory for database storage
@@ -92,7 +93,7 @@ async def invoke_agent(request: InvokeRequest):
             "text", str(result.message)
         )
 
-        response_data = {"result": message_text }
+        response_data = {"result": message_text}
 
         return response_data
     except Exception as e:
@@ -106,7 +107,6 @@ async def health_check():
 
 
 if __name__ == "__main__":
-    print(
-        f"Starting a FastAPI agent server on 0.0.0.0:8888..."
-    )
-    uvicorn.run(app, host="0.0.0.0", port=8888)
+    port = int(os.getenv("AGENT_PORT"))
+    print(f"Starting a FastAPI agent server on 0.0.0.0:{port}...")
+    uvicorn.run(app, host="0.0.0.0", port=port)

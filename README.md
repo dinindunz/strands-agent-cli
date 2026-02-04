@@ -11,28 +11,7 @@ pip install -r requirements.txt
 
 ## Configuration
 
-Copy `.env.example` to `.env` and configure:
-
-## Database Storage
-
-Cognee stores the knowledge graph database in your project directory:
-
-```
-.cognee_system/
-└── databases/
-    ├── cognee_db              # Relational database (SQLite)
-    ├── cognee_graph_kuzu      # Knowledge graph (Kuzu)
-    ├── cognee_graph_kuzu.wal  # Write-ahead log
-    └── cognee.lancedb/        # Vector embeddings (LanceDB)
-```
-
-**Database Location**: `.cognee_system/databases/`
-
-**Persistence**: The database persists across agent restarts. All stored knowledge remains available unless you delete the `.cognee_system` directory.
-
-**Testing Persistence**: Run `python test_cognee_persistence.py` to verify the database connection and check what data is stored.
-
-**Visualizing the Graph**: Run `python visualize_graph.py` to generate an interactive HTML visualization of the knowledge graph (Note: Stop the agent first to avoid database locks).
+Copy `.env.example` to `.env` and configure. Set your LLM and Embedding provider details.
 
 ## Usage
 
@@ -42,7 +21,7 @@ Cognee stores the knowledge graph database in your project directory:
 python agent.py
 ```
 
-The server will start on `http://0.0.0.0:8888`
+The server will start on `http://localhost:8888`
 
 ### Test with Chat Client
 
@@ -50,18 +29,28 @@ The server will start on `http://0.0.0.0:8888`
 python chat_client.py
 ```
 
-### API Endpoints
-
-**Health Check**:
-```bash
-curl http://localhost:8888/health
+**Example - Store Information**:
+```
+You: Contract signed with Acme Corp - Industry: Healthcare, Contract Value: $1.2M
+Agent: [Stores the information in the knowledge graph]
 ```
 
-**Invoke Agent**:
+**Example - Retrieve Information**:
+```
+You: What healthcare contracts do we have?
+Agent: [Searches the knowledge graph and returns relevant contracts]
+```
+
+### Visualizing the Knowledge Graph
+
+Run a visualization server alongside your agent to view the graph in real-time:
+
 ```bash
-curl -X POST http://localhost:8888/invoke \
-  -H "Content-Type: application/json" \
-  -d '{"prompt": "Remember that Acme Corp signed a $1.2M healthcare contract"}'
+# tart the graph visualization server
+python graph_server.py
+
+# Open in browser
+# Visit: http://localhost:8889
 ```
 
 ## Knowledge Graph
@@ -86,35 +75,30 @@ Cognee automatically extracts entities and relationships from stored information
 - Contract � HAS_VALUE � $1.2M
 - Contract � HAS_STATUS � Signed
 
-## Visualizing the Knowledge Graph
-
-### Real-Time Visualization (Recommended)
-
-Run a visualization server alongside your agent to view the graph in real-time:
-
-```bash
-# tart the graph visualization server
-python graph_server.py
-
-# Open in browser
-# Visit: http://localhost:8080/graph_visualization.html
-```
-
-**Benefits**:
-- ✅ View graph while agent is running
-- ✅ No database locks
-- ✅ Serves the static visualization via HTTP
-- ✅ Perfect for development and demos
-
-**Ports**:
-- Agent: http://localhost:8888
-- Graph Visualization: http://localhost:8080
-
 ### What the Visualization Shows
 
 - **Nodes**: Entities (Organizations, Industries, Contracts, Monetary Values, etc.)
 - **Edges**: Relationships (IS_A, OPERATES_IN, HAS_VALUE, HAS_STATUS, etc.)
 - **Interactive**: Click and drag nodes, zoom in/out to explore connections
+
+## Database Storage
+
+Cognee stores the knowledge graph database in your project directory:
+
+```
+.cognee_system/
+└── databases/
+    ├── cognee_db              # Relational database (SQLite)
+    ├── cognee_graph_kuzu      # Knowledge graph (Kuzu)
+    ├── cognee_graph_kuzu.wal  # Write-ahead log
+    └── cognee.lancedb/        # Vector embeddings (LanceDB)
+```
+
+**Database Location**: `.cognee_system/databases/`
+
+**Persistence**: The database persists across agent restarts. All stored knowledge remains available unless you delete the `.cognee_system` directory.
+
+**Testing Persistence**: Run `python test_cognee_persistence.py` to verify the database connection and check what data is stored.
 
 ## License
 

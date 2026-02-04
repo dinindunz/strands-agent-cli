@@ -17,14 +17,17 @@ load_dotenv()
 
 # Apply common patches
 from common_patches import apply_tiktoken_patch
+
 apply_tiktoken_patch()
 
 # Configure Cognee to use project directory (same as agent.py)
 import cognee
+
 project_cognee_dir = os.path.join(os.getcwd(), ".cognee_system")
 cognee.config.system_root_directory(project_cognee_dir)
 
 from cognee_integration_langgraph import get_sessionized_cognee_tools
+
 
 async def test_persistence():
     print("=" * 60)
@@ -37,9 +40,9 @@ async def test_persistence():
     # Try to search for previously stored data
     print("\n1. Searching for previously stored 'Acme Corp' data...")
     try:
-        result = await _cognee_search_tool.ainvoke({
-            "query_text": "Acme Corp healthcare contract"
-        })
+        result = await _cognee_search_tool.ainvoke(
+            {"query_text": "Acme Corp healthcare contract"}
+        )
         print(f"   ✓ Search Result:\n{result}")
         print("\n   → Database is PERSISTENT - found existing data!")
     except Exception as e:
@@ -49,9 +52,9 @@ async def test_persistence():
     # Try searching for any healthcare related data
     print("\n2. Searching for healthcare contracts...")
     try:
-        result = await _cognee_search_tool.ainvoke({
-            "query_text": "healthcare contracts"
-        })
+        result = await _cognee_search_tool.ainvoke(
+            {"query_text": "healthcare contracts"}
+        )
         print(f"   ✓ Search Result:\n{result}")
     except Exception as e:
         print(f"   ✗ Error: {e}")
@@ -82,6 +85,7 @@ async def test_persistence():
     print("\n" + "=" * 60)
     print("TEST COMPLETE")
     print("=" * 60)
+
 
 if __name__ == "__main__":
     asyncio.run(test_persistence())
