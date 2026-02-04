@@ -10,10 +10,10 @@ _original_encoding_for_model = tiktoken.encoding_for_model
 
 def apply_tiktoken_patch():
     """
-    Patch tiktoken to recognize custom model names from custom gateways.
+    Patch tiktoken to recognise custom model names from custom gateways.
 
     Maps custom model names (e.g., au-text-embedding-3-large) to standard
-    OpenAI model names that tiktoken recognizes.
+    OpenAI model names that tiktoken recognises.
     """
 
     def patched_encoding_for_model(model_name: str):

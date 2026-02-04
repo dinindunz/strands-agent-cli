@@ -33,4 +33,4 @@ logs/
 .cognee_system/
 *.db
 *.sqlite
-graph_visualization.html
+graph_visualisation.html

@@ -47,7 +47,7 @@ async def test_persistence():
         print("\n   → Database is PERSISTENT - found existing data!")
     except Exception as e:
         print(f"   ✗ Error: {e}")
-        print("   → Database might be empty or not initialized")
+        print("   → Database might be empty or not initialised")
 
     # Try searching for any healthcare related data
     print("\n2. Searching for healthcare contracts...")

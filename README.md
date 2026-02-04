@@ -41,16 +41,19 @@ You: What healthcare contracts do we have?
 Agent: [Searches the knowledge graph and returns relevant contracts]
 ```
 
-### Visualizing the Knowledge Graph
+### Visualising the Knowledge Graph
 
-Run a visualization server alongside your agent to view the graph in real-time:
+Run visualisation server to view the graph:
 
 ```bash
-# tart the graph visualization server
+# The agent must be stopped before running this (Kuzu database lock)
+python visualise_graph.py
+
+# Start the graph visualisation server
 python graph_server.py
 
 # Open in browser
-# Visit: http://localhost:8889
+# Visit: http://localhost:8889/graph_visualisation.html
 ```
 
 ## Knowledge Graph
@@ -63,21 +66,21 @@ Cognee automatically extracts entities and relationships from stored information
 ```
 
 **Extracted Entities**:
-- Organization: "Acme Corp"
+- Organisation: "Acme Corp"
 - Industry: "Healthcare"
 - Contract: "Acme Corp contract"
 - Status: "Signed"
 - MonetaryValue: "$1.2M"
 
 **Relationships**:
-- Acme Corp � IS_A � Organization
+- Acme Corp � IS_A � Organisation
 - Acme Corp � OPERATES_IN � Healthcare
 - Contract � HAS_VALUE � $1.2M
 - Contract � HAS_STATUS � Signed
 
-### What the Visualization Shows
+### What the Visualisation Shows
 
-- **Nodes**: Entities (Organizations, Industries, Contracts, Monetary Values, etc.)
+- **Nodes**: Entities (Organisations, Industries, Contracts, Monetary Values, etc.)
 - **Edges**: Relationships (IS_A, OPERATES_IN, HAS_VALUE, HAS_STATUS, etc.)
 - **Interactive**: Click and drag nodes, zoom in/out to explore connections
 
