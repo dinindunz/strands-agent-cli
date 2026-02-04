@@ -15,21 +15,9 @@ import asyncio
 # Load environment variables
 load_dotenv()
 
-# Monkey-patch tiktoken
-import tiktoken
-_original_encoding_for_model = tiktoken.encoding_for_model
-
-def patched_encoding_for_model(model_name: str):
-    model_mappings = {
-        "au-text-embedding-3-small": "text-embedding-3-small",
-        "au-text-embedding-3-large": "text-embedding-3-large",
-        "openai/au-text-embedding-3-small": "text-embedding-3-small",
-        "openai/au-text-embedding-3-large": "text-embedding-3-large",
-    }
-    mapped_model = model_mappings.get(model_name, model_name)
-    return _original_encoding_for_model(mapped_model)
-
-tiktoken.encoding_for_model = patched_encoding_for_model
+# Apply common patches
+from common_patches import apply_tiktoken_patch
+apply_tiktoken_patch()
 
 # Configure Cognee to use project directory (same as agent.py)
 import cognee

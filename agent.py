@@ -10,23 +10,9 @@ import uvicorn
 # Load environment variables from .env file
 load_dotenv()
 
-# Monkey-patch tiktoken to handle custom embedding model names
-import tiktoken
-_original_encoding_for_model = tiktoken.encoding_for_model
-
-def patched_encoding_for_model(model_name: str):
-    """Patch tiktoken to recognize custom model names from Mantel gateway"""
-    # Map custom model names to standard OpenAI encodings
-    model_mappings = {
-        "au-text-embedding-3-large": "text-embedding-3-large",
-        "openai/au-text-embedding-3-large": "text-embedding-3-large",
-    }
-
-    # Use mapping if available, otherwise pass through
-    mapped_model = model_mappings.get(model_name, model_name)
-    return _original_encoding_for_model(mapped_model)
-
-tiktoken.encoding_for_model = patched_encoding_for_model
+# Apply common patches
+from common_patches import apply_tiktoken_patch
+apply_tiktoken_patch()
 
 # Configure Cognee to use project directory for database storage
 import cognee
@@ -38,10 +24,6 @@ cognee.config.system_root_directory(project_cognee_dir)
 print(f"Cognee database location: {project_cognee_dir}/databases")
 
 from cognee_integration_langgraph import get_sessionized_cognee_tools
-
-# Set environment variables to bypass tool approval prompts
-os.environ["STRANDS_NON_INTERACTIVE"] = "true"
-os.environ["BYPASS_TOOL_CONSENT"] = "true"
 
 app = FastAPI()
 
@@ -91,7 +73,7 @@ agent = Agent(
             "base_url": os.getenv("LLM_ENDPOINT"),
             "api_key": os.getenv("LLM_API_KEY"),
         },
-        model_id="global-claude-sonnet-4.5-claude-code",
+        model_id=os.getenv("LLM_MODEL").split("/")[-1],
     ),
     tools=[shell, editor, add_to_knowledge_base, search_knowledge_base],
 )
